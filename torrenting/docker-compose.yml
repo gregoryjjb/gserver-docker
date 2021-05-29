@@ -1,0 +1,103 @@
+version: '3.3'
+services:
+  transmission_openvpn:
+    image: haugene/transmission-openvpn
+    container_name: transmission_openvpn
+    restart: unless-stopped
+    cap_add:
+      - NET_ADMIN
+    volumes:
+      - './volumes/us_all.ovpn:/etc/openvpn/mullvad/us_all.ovpn'
+      - '/media/external/shared/media/automatic/torrents:/data'
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - OPENVPN_PROVIDER=MULLVAD
+      - OPENVPN_CONFIG=us_all
+      # Don't forget to set these in a .env file!
+      - OPENVPN_USERNAME=${VPN_USERNAME}
+      - OPENVPN_PASSWORD=${VPN_PASSWORD}
+      - LOCAL_NETWORK=192.168.50.0/24
+      - TRANSMISSION_WEB_UI=flood
+      - TRANSMISSION_DOWNLOAD_QUEUE_ENABLED=true
+      - TRANSMISSION_DOWNLOAD_QUEUE_SIZE=10
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+    ports:
+      - '9091:9091'
+    hostname: 'transmission'
+
+  jackett:
+    image: ghcr.io/linuxserver/jackett
+    container_name: jackett
+    restart: unless-stopped
+    ports:
+      - 9117:9117
+    hostname: 'jackett'
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=US/Pacific
+      #- AUTO_UPDATE=true #optional
+      #- RUN_OPTS=<run options here> #optional
+    volumes:
+      - ./volumes/jackett-config:/config
+      - ./volumes/jackett-downloads:/downloads
+
+  sonarr:
+    image: ghcr.io/linuxserver/sonarr:preview
+    container_name: sonarr
+    restart: unless-stopped
+    ports:
+      - 8989:8989
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=US/Pacific
+    volumes:
+      - ./volumes/sonarr-config:/config
+      - /media/external/shared/media/automatic:/media
+  
+  radarr:
+    image: ghcr.io/linuxserver/radarr
+    container_name: radarr
+    restart: unless-stopped
+    ports:
+      - 7878:7878
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=US/Pacific
+    volumes:
+      - ./volumes/radarr-config:/config
+      - /media/external/shared/media/automatic:/media
+  
+  bazarr:
+    image: ghcr.io/linuxserver/bazarr
+    container_name: bazarr
+    restart: unless-stopped
+    ports:
+      - 6767:6767
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=US/Pacific
+    volumes:
+      - ./volumes/bazarr-config:/config
+      - /media/external/shared/media/automatic:/media
+
+  ombi:
+    image: ghcr.io/linuxserver/ombi
+    container_name: ombi
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=US/Pacific
+      #- BASE_URL=/ombi #optional
+    volumes:
+      - ./volumes/ombi-config:/config
+    ports:
+      - 3579:3579

@@ -1,0 +1,152 @@
+## Snippets ##
+
+(sad) {
+	respond "Down for maintenance, please check back later :("
+}
+
+(robots) {
+	header X-Robots-Tag "noindex"
+}
+
+(external) {
+	@external {
+		not remote_ip 192.168.50.0/24
+		# Kinda hacky, makes the public file server work
+		not path /public/*
+	}
+}
+
+# Users
+# THESE ENV VARIABLES NEED TO BE SET TO THE PASSWORD HASHES!
+(u_family) {
+	family {$PW_FAMILY}
+}
+(u_greg) {
+	greg {$PW_GREG}
+}
+
+(auth_family) {
+	import external
+	basicauth @external {
+		import u_family
+		import u_greg
+	}
+}
+(auth_greg) {
+	import external
+	basicauth @external {
+		import u_greg
+	}
+}
+
+
+## Servers ##
+
+gserver.club {
+	import robots
+	import auth_family
+
+	handle {
+		reverse_proxy 127.0.0.1:7000
+	}
+}
+
+docs.gserver.club {
+	import robots
+	import auth_family
+
+	reverse_proxy 127.0.0.1:5000
+}
+
+jellyfin.gserver.club {
+	import robots
+	
+	#handle /web/* {
+	#	rewrite /web/index.html
+	#	reverse_proxy http://127.0.0.1:8096
+	#}
+	
+	#rewrite /web/* /web/index.html
+	
+	handle {
+		reverse_proxy 127.0.0.1:8096
+	}
+}
+
+# Redirect for old jellyfin
+http://jelly.fin {
+	redir https://jellyfin.gserver.club{uri}
+}
+
+files.gserver.club {
+	import robots
+	import auth_family
+
+	root * /shared-files
+	file_server browse
+}
+
+
+## Monitoring ##
+
+cockpit.gserver.club {
+	import robots
+	import external
+	# Can't use basic auth here because Cockpit uses it :(
+	# So just block instead
+	respond @external "Access denied" 403
+
+	reverse_proxy 127.0.0.1:9090
+}
+
+
+netdata.gserver.club {
+	import robots
+	import auth_greg
+
+	reverse_proxy 127.0.0.1:19999
+}
+
+## Torrenting ##
+
+transmission.gserver.club {
+	import robots
+	import auth_greg
+
+	reverse_proxy 127.0.0.1:9091
+}
+
+jackett.gserver.club {
+	import robots
+	import auth_greg
+
+	reverse_proxy 127.0.0.1:9117
+}
+
+sonarr.gserver.club {
+	import robots
+	import auth_greg
+
+	reverse_proxy 127.0.0.1:8989
+}
+
+radarr.gserver.club {
+	import robots
+	import auth_greg
+
+	reverse_proxy 127.0.0.1:7878
+}
+
+bazarr.gserver.club {
+	import robots
+	import auth_greg
+
+	reverse_proxy 127.0.0.1:6767
+}
+
+ombi.gserver.club {
+	import robots
+	import auth_family
+
+	reverse_proxy 127.0.0.1:3579
+}

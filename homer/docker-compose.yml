@@ -1,0 +1,15 @@
+version: "3.7"
+
+services:
+  homer:
+    image: b4bz/homer
+    container_name: homer
+    restart: unless-stopped
+    ports:
+      - 7000:8080
+    volumes:
+      # Not in a "volumes" folder because we want to commit it
+      - ./assets:/www/assets
+    environment:
+      - UID=1000
+      - GID=1000

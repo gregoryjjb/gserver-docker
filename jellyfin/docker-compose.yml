@@ -1,0 +1,32 @@
+version: "2.3"
+services:
+  jellyfin:
+    image: jellyfin/jellyfin:10.7.0
+    container_name: jellyfin
+    user: 1000:1000
+    # DLNA discovery doesn't work without doing this :(
+    # Nothing should conflict with it
+    network_mode: "host"
+    # ports:
+    #   - 8096:8096
+    #   # These are optional but used by the linuxserver.io guys, I think for the automatic server discovery
+    #   - 8920:8920 #optional
+    #   - 7359:7359/udp #optional
+    #   - 1900:1900/udp #optional
+    volumes:
+      - ./volumes/config:/config
+      - /media/external/shared/media/.cache/jellyfin:/cache
+      - /media/external/shared/media:/media
+      #- /path/to/media2:/media2:ro
+      # MASSIVE HACK - OVERRIDE SO IOS WORKS
+      - ./volumes/Jellyfin.Api.dll:/jellyfin/Jellyfin.Api.dll
+      # - ./volumes/
+      # - ./volumes/appRouter.js://jellyfin/jellyfin-web/components/appRouter.js
+    restart: "unless-stopped"
+    runtime: nvidia
+    # Optional - alternative address used for autodiscovery
+    environment:
+       - NVIDIA_VISIBLE_DEVICES=all
+       - NVIDIA_DRIVER_CAPABILITIES=all
+       - JELLYFIN_PublishedServerUrl=https://jellyfin.gserver.club
+      #  - JELLYFIN_CACHE_DIR=/media/.cache/jellyfin

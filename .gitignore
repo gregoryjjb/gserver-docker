@@ -1,0 +1,8 @@
+# Volumes are big, exeptions are in individual gitignores in subdirectories
+**/volumes
+
+# Old docker setups
+*.ignore
+
+# Secrets
+*.env

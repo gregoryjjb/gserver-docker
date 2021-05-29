@@ -1,0 +1,15 @@
+version: "3.0"
+services:
+  dokuwiki:
+    image: ghcr.io/linuxserver/dokuwiki
+    container_name: dokuwiki
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Pacific
+    volumes:
+      - ./volumes/config:/config
+    ports:
+      - 127.0.0.1:5000:80
+      # - 443:443 #optional
+    restart: unless-stopped

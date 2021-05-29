@@ -1,0 +1,6 @@
+/* Custom Homer CSS file */
+
+/* Round edges of images */
+.image > img {
+  border-radius: 8px;
+}
