@@ -128,7 +128,7 @@ services:
         url: "https://netdata.gserver.club"
         logo: "assets/tools/netdata.jpg"
 
-      - name: "Cockpit"
-        subtitle: "System management"
-        url: "https://cockpit.gserver.club"
-        logo: "assets/tools/cockpit.png"
+      # - name: "Cockpit"
+      #   subtitle: "System management"
+      #   url: "https://cockpit.gserver.club"
+      #   logo: "assets/tools/cockpit.png"

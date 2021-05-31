@@ -22,6 +22,10 @@ services:
       - /proc:/host/proc:ro
       - /sys:/host/sys:ro
       - /etc/os-release:/host/etc/os-release:ro
+      # Mounting the entire disk to monitor space!
+      - /:/host:ro
+      # Custom dashboards go in ./dashboards
+      - ./dashboards:/usr/share/netdata/web/custom:ro
   
   # Docker proxy is required for Netdata to see container names
   docker-proxy:

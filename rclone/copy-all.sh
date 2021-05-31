@@ -1,5 +1,8 @@
 #! /bin/bash
 
+# I use this command in crontab:
+# bash /home/greg/docker/rclone/copy-all.sh > /home/greg/cron-rclone.log 2>&1
+
 logdir="`dirname "$0"`/logs"
 logpath="$logdir/`date +%F_%H%M`.log"
 echo "Savings logs to $logpath"

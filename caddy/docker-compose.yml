@@ -1,6 +1,6 @@
 version: "3.7"
 
-# To reload caddy:
+# To reload Caddyfile without restarting the entire container:
 # docker exec -w /etc/caddy caddy_proxy caddy reload
 
 services:

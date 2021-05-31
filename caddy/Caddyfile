@@ -89,15 +89,15 @@ files.gserver.club {
 
 ## Monitoring ##
 
-cockpit.gserver.club {
-	import robots
-	import external
-	# Can't use basic auth here because Cockpit uses it :(
-	# So just block instead
-	respond @external "Access denied" 403
+# cockpit.gserver.club {
+# 	import robots
+# 	import external
+# 	# Can't use basic auth here because Cockpit uses it :(
+# 	# So just block instead
+# 	respond @external "Access denied" 403
 
-	reverse_proxy 127.0.0.1:9090
-}
+# 	reverse_proxy 127.0.0.1:9090
+# }
 
 
 netdata.gserver.club {
