@@ -1,0 +1,7 @@
+theme:
+  name: material
+
+site_name: GServer Docs
+
+markdown_extensions:
+  - attr_list

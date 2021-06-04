@@ -55,7 +55,7 @@ docs.gserver.club {
 	import robots
 	import auth_family
 
-	reverse_proxy 127.0.0.1:5000
+	reverse_proxy 127.0.0.1:8100
 }
 
 jellyfin.gserver.club {

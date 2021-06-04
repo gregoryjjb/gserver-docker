@@ -1,0 +1,14 @@
+version: "3.0"
+services:
+  mkdocs:
+    image: squidfunk/mkdocs-material
+    container_name: mkdocs
+    restart: unless-stopped
+    ports:
+      - 8100:8000
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Pacific
+    volumes:
+      - ./content:/docs
