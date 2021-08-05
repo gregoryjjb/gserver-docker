@@ -1,0 +1,14 @@
+version: '3.3'
+services:
+  librespeed:
+    image: adolfintel/speedtest
+    container_name: librespeed
+    restart: unless-stopped
+    ports:
+      - 8200:80
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=US/Pacific
+      - TITLE=GServer Speed Test
+      - DISTANCE=mi

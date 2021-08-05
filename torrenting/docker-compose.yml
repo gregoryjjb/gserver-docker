@@ -17,7 +17,7 @@ services:
       # Don't forget to set these in a .env file!
       - OPENVPN_USERNAME=${VPN_USERNAME}
       - OPENVPN_PASSWORD=${VPN_PASSWORD}
-      - LOCAL_NETWORK=192.168.50.0/24
+      - LOCAL_NETWORK=192.168.1.0/24
       - TRANSMISSION_WEB_UI=flood
       - TRANSMISSION_DOWNLOAD_QUEUE_ENABLED=true
       - TRANSMISSION_DOWNLOAD_QUEUE_SIZE=10

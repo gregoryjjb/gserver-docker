@@ -123,6 +123,11 @@ services:
   - name: "Administration"
     icon: "fas fa-user-shield"
     items:
+      - name: "LibreSpeed"
+        subtitle: "Speed test"
+        url: "https://speedtest.gserver.club"
+        logo: "assets/tools/librespeed.png"
+
       - name: "Netdata"
         subtitle: "Real-time monitoring"
         url: "https://netdata.gserver.club"

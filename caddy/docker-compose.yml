@@ -5,7 +5,7 @@ version: "3.7"
 
 services:
   caddy:
-    image: caddy:2.2.1-alpine
+    image: caddy:2.3.0-alpine
     container_name: caddy_proxy
     restart: unless-stopped
     network_mode: host

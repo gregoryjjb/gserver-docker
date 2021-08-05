@@ -8,9 +8,34 @@
 	header X-Robots-Tag "noindex"
 }
 
+(security) {
+	header {
+		# No Google
+		X-Robots-Tag "noindex"
+
+		Access-Control-Allow-Origin {host}
+
+		# Tweaked to work with all the sites (no iframe)
+		# Not the safest
+		Content-Security-Policy "default-src https: 'unsafe-inline' 'unsafe-eval' data: connect-src 'self' ws: frame-ancestors 'none'"
+
+		# No iframes
+		X-Frame-Options: "DENY"
+
+		# Only connect to this site via HTTPS for the two years (recommended by MDN)
+		Strict-Transport-Security: max-age=63072000
+
+		# Block pages from loading when they detect reflected XSS attacks
+		X-XSS-Protection: "1; mode=block"
+
+		# Prevent browsers from incorrectly detecting non-scripts as scripts
+		X-Content-Type-Options: "nosniff"
+	}
+}
+
 (external) {
 	@external {
-		not remote_ip 192.168.50.0/24
+		not remote_ip 192.168.1.0/24
 		# Kinda hacky, makes the public file server work
 		not path /public/*
 	}
@@ -23,6 +48,9 @@
 }
 (u_greg) {
 	greg {$PW_GREG}
+}
+(u_admin) {
+	admin {$PW_ADMIN}
 }
 
 (auth_family) {
@@ -39,27 +67,77 @@
 	}
 }
 
+(auth_admin) {
+	basicauth {
+		import u_admin
+	}
+}
+
+
+## Authentication ##
+
+# This was copied from https://josheli.com/knob/2021/02/24/single-sign-on-in-caddy-server-using-only-the-caddyfile-and-basic-authentication/
+
+(basic-auth) {
+  basicauth / {
+    admin {$PW_ADMIN}
+  }
+}
+ 
+# a snippet to check if a cookie token is set. if not, store the current page as the referer and redirect to auth site
+(proxy-auth) {
+  # if cookie not = some-token-nonsense
+  @no-auth {
+    not header_regexp mycookie Cookie gstoken={$COOKIE_TOKEN}
+    # https://github.com/caddyserver/caddy/issues/3916
+  }
+  
+  # store current time, page and redirect to auth
+  route @no-auth {
+    header Set-Cookie "myreferer={scheme}://{host}{uri}; Domain=gserver.club; Path=/; Max-Age=30; HttpOnly; SameSite=Strict; Secure"
+    redir https://auth.gserver.club
+  }
+}
+
+# a pseudo site that only requires basic auth, sets cookie, and redirects back to original site
+auth.gserver.club {
+  route / {
+    # require authentication
+    import basic-auth
+
+    # upon successful auth, set a client token
+    header Set-Cookie "gstoken={$COOKIE_TOKEN}; Domain=gserver.club; Path=/; Max-Age=2592000; HttpOnly; SameSite=Strict; Secure"
+
+    #delete the referer cookie
+    header +Set-Cookie "myreferer=null; Domain=gserver.club; Path=/; Expires=Thu, 25 Sep 1971 12:00:00 GMT; HttpOnly; SameSite=Strict; Secure"
+
+    # redirect back to the original site
+    redir {http.request.cookie.myreferer}
+  }
+
+  # fallback
+  respond "Hi."
+}
+
 
 ## Servers ##
 
 gserver.club {
-	import robots
-	import auth_family
+	import security
+	import proxy-auth
 
-	handle {
-		reverse_proxy 127.0.0.1:7000
-	}
+	reverse_proxy 127.0.0.1:7000
 }
 
 docs.gserver.club {
-	import robots
-	import auth_family
+	import security
+	import proxy-auth
 
 	reverse_proxy 127.0.0.1:8100
 }
 
 jellyfin.gserver.club {
-	import robots
+	import security
 	
 	#handle /web/* {
 	#	rewrite /web/index.html
@@ -79,8 +157,8 @@ http://jelly.fin {
 }
 
 files.gserver.club {
-	import robots
-	import auth_family
+	import security
+	import proxy-auth
 
 	root * /shared-files
 	file_server browse
@@ -90,7 +168,7 @@ files.gserver.club {
 ## Monitoring ##
 
 # cockpit.gserver.club {
-# 	import robots
+# 	import security
 # 	import external
 # 	# Can't use basic auth here because Cockpit uses it :(
 # 	# So just block instead
@@ -101,52 +179,57 @@ files.gserver.club {
 
 
 netdata.gserver.club {
-	import robots
-	import auth_greg
+	import security
+	import proxy-auth
 
 	reverse_proxy 127.0.0.1:19999
+}
+
+speedtest.gserver.club {
+	import security
+	
+	reverse_proxy 127.0.0.1:8200
 }
 
 ## Torrenting ##
 
 transmission.gserver.club {
-	import robots
-	import auth_greg
+	import security
+	import proxy-auth
 
 	reverse_proxy 127.0.0.1:9091
 }
 
 jackett.gserver.club {
-	import robots
-	import auth_greg
+	import security
+	import proxy-auth
 
 	reverse_proxy 127.0.0.1:9117
 }
 
 sonarr.gserver.club {
-	import robots
-	import auth_greg
+	import security
+	import proxy-auth
 
 	reverse_proxy 127.0.0.1:8989
 }
 
 radarr.gserver.club {
-	import robots
-	import auth_greg
+	import security
+	import proxy-auth
 
 	reverse_proxy 127.0.0.1:7878
 }
 
 bazarr.gserver.club {
-	import robots
-	import auth_greg
+	import security
+	import proxy-auth
 
 	reverse_proxy 127.0.0.1:6767
 }
 
 ombi.gserver.club {
-	import robots
-	import auth_family
+	import security
 
 	reverse_proxy 127.0.0.1:3579
 }
