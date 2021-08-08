@@ -17,7 +17,8 @@
 
 		# Tweaked to work with all the sites (no iframe)
 		# Not the safest
-		Content-Security-Policy "default-src https: 'unsafe-inline' 'unsafe-eval' data: connect-src 'self' ws: frame-ancestors 'none'"
+		# !!! DISABLED: this was causing a NS_BINDING_ABORTED in Jellyfin on some requests, no idea why
+		# Content-Security-Policy "default-src https: 'unsafe-inline' 'unsafe-eval' data: connect-src 'self' ws: frame-ancestors 'none'"
 
 		# No iframes
 		X-Frame-Options: "DENY"
@@ -189,6 +190,20 @@ speedtest.gserver.club {
 	import security
 	
 	reverse_proxy 127.0.0.1:8200
+}
+
+prometheus.gserver.club {
+	import security
+	import proxy-auth
+
+	reverse_proxy 127.0.0.1:9090
+}
+
+grafana.gserver.club {
+	import security
+	import proxy-auth
+
+	reverse_proxy 127.0.0.1:9100
 }
 
 ## Torrenting ##

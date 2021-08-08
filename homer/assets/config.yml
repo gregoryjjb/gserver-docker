@@ -132,6 +132,16 @@ services:
         subtitle: "Real-time monitoring"
         url: "https://netdata.gserver.club"
         logo: "assets/tools/netdata.jpg"
+      
+      - name: "Grafana"
+        subtitle: "Graphs & long-term monitoring"
+        url: "https://grafana.gserver.club"
+        logo: "assets/tools/grafana.svg"
+
+      - name: "Prometheus"
+        subtitle: "Monitoring database"
+        url: "https://prometheus.gserver.club"
+        logo: "assets/tools/prometheus.svg"
 
       # - name: "Cockpit"
       #   subtitle: "System management"

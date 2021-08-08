@@ -1,8 +1,9 @@
 version: '3'
 services:
   netdata:
-    image: netdata/netdata
+    image: d34dc3n73r/netdata-glibc
     container_name: netdata
+    runtime: nvidia
     hostname: netdata.gserver.club # set to fqdn of host
     ports:
       - 19999:19999
@@ -12,11 +13,15 @@ services:
     security_opt:
       - apparmor:unconfined
     environment:
+      - NVIDIA_VISIBLE_DEVICES=all
       - DOCKER_HOST=docker-proxy:2375
+      - DO_NOT_TRACK=
     volumes:
+      # Netdata data
       - ./volumes/netdataconfig:/etc/netdata:ro
       - netdatalib:/var/lib/netdata
       - netdatacache:/var/cache/netdata
+      # System monitoring files
       - /etc/passwd:/host/etc/passwd:ro
       - /etc/group:/host/etc/group:ro
       - /proc:/host/proc:ro
@@ -31,10 +36,60 @@ services:
   docker-proxy:
     image: tecnativa/docker-socket-proxy
     container_name: netdata-docker-proxy
+    restart: unless-stopped
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     environment:
       - CONTAINERS=1
+  
+  prometheus:
+    image: prom/prometheus:v2.28.1
+    container_name: prometheus
+    # Messy but we need to read from containers outside this network
+    network_mode: host
+    # ports:
+    #   - 9090:9090
+    restart: unless-stopped
+    user: 1000:1000
+    command:
+      # Base config
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+      # Custom config
+      - '--web.enable-lifecycle'
+      - '--storage.tsdb.retention.time=1y'
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./volumes/prometheus:/prometheus
+
+  grafana:
+    image: grafana/grafana:8.1.0
+    container_name: grafana
+    # Very messy but we need prometheus :(
+    network_mode: host
+    # ports:
+    #   - 9100:3000
+    user: 1000:1000
+    restart: unless-stopped
+    environment:
+      - PORT=9100
+    volumes:
+      - ./grafana.ini:/etc/grafana/grafana.ini
+      - ./volumes/grafana/data:/var/lib/grafana
+  
+  # transmission-exporter:
+  #   image: metalmatze/transmission-exporter
+  #   restart: unless-stopped
+  #   links:
+  #     - transmission
+  #   # Messy, but we need to get to transmission in the torrenting docker compose file
+  #   network_mode: "host"
+  #   ports:
+  #     - 19091:19091
+  #   environment:
+  #     TRANSMISSION_ADDR: http://127.0.0.1:9091
 
 volumes:
   netdatalib:

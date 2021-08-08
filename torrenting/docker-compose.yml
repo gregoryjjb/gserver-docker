@@ -28,6 +28,17 @@ services:
     ports:
       - '9091:9091'
     hostname: 'transmission'
+  
+  transmission-exporter:
+    image: metalmatze/transmission-exporter
+    container_name: transmission-exporter
+    restart: unless-stopped
+    links:
+      - transmission_openvpn
+    ports:
+      - 19091:19091
+    environment:
+      TRANSMISSION_ADDR: http://transmission:9091
 
   jackett:
     image: ghcr.io/linuxserver/jackett

@@ -1,5 +1,7 @@
 # NAS Docker infrastructure
 
+> Requires docker-compose 1.29+
+
 Sources of inspiration:
 
 - Alex Kretzschmar's [Perfect Media Server](https://perfectmediaserver.com/).
