@@ -91,6 +91,9 @@
   @no-auth {
     not header_regexp mycookie Cookie gstoken={$COOKIE_TOKEN}
     # https://github.com/caddyserver/caddy/issues/3916
+
+		# Allow access to public files
+		not path /public/* /public
   }
   
   # store current time, page and redirect to auth
