@@ -123,6 +123,11 @@ services:
   - name: "Administration"
     icon: "fas fa-user-shield"
     items:
+      - name: "Account"
+        subtitle: "Your account settings from caddy-auth-portal"
+        url: "https://sso.gserver.club/auth/settings"
+        icon: "fas fa-lock"
+
       - name: "LibreSpeed"
         subtitle: "Speed test"
         url: "https://speedtest.gserver.club"

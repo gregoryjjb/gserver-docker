@@ -1,12 +1,13 @@
 version: "3.7"
 
 # To reload Caddyfile without restarting the entire container:
-# docker exec -w /etc/caddy caddy_proxy caddy reload
+# docker exec -w /etc/caddy caddy caddy reload
 
 services:
   caddy:
-    image: caddy:2.3.0-alpine
-    container_name: caddy_proxy
+    # image: caddy:2.3.0-alpine
+    build: ./caddy
+    container_name: caddy
     restart: unless-stopped
     network_mode: host
     # You have to put a passwords.env next to this compose file

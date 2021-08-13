@@ -1,79 +1,94 @@
 ## Snippets ##
 
 (sad) {
-	respond "Down for maintenance, please check back later :("
+  respond "Down for maintenance, please check back later :("
 }
 
 (robots) {
-	header X-Robots-Tag "noindex"
+  header X-Robots-Tag "noindex"
 }
 
 (security) {
-	header {
-		# No Google
-		X-Robots-Tag "noindex"
+  header {
+    # No Google
+    X-Robots-Tag "noindex"
 
-		Access-Control-Allow-Origin {host}
+    Access-Control-Allow-Origin {host}
 
-		# Tweaked to work with all the sites (no iframe)
-		# Not the safest
-		# !!! DISABLED: this was causing a NS_BINDING_ABORTED in Jellyfin on some requests, no idea why
-		# Content-Security-Policy "default-src https: 'unsafe-inline' 'unsafe-eval' data: connect-src 'self' ws: frame-ancestors 'none'"
+    # Tweaked to work with all the sites (no iframe)
+    # Not the safest
+    # !!! DISABLED: this was causing a NS_BINDING_ABORTED in Jellyfin on some requests, no idea why
+    # Content-Security-Policy "default-src https: 'unsafe-inline' 'unsafe-eval' data: connect-src 'self' ws: frame-ancestors 'none'"
 
-		# No iframes
-		X-Frame-Options: "DENY"
+    # No iframes
+    X-Frame-Options: "DENY"
 
-		# Only connect to this site via HTTPS for the two years (recommended by MDN)
-		Strict-Transport-Security: max-age=63072000
+    # Only connect to this site via HTTPS for the two years (recommended by MDN)
+    Strict-Transport-Security: max-age=63072000
 
-		# Block pages from loading when they detect reflected XSS attacks
-		X-XSS-Protection: "1; mode=block"
+    # Block pages from loading when they detect reflected XSS attacks
+    X-XSS-Protection: "1; mode=block"
 
-		# Prevent browsers from incorrectly detecting non-scripts as scripts
-		X-Content-Type-Options: "nosniff"
-	}
+    # Prevent browsers from incorrectly detecting non-scripts as scripts
+    X-Content-Type-Options: "nosniff"
+  }
 }
 
 (external) {
-	@external {
-		not remote_ip 192.168.1.0/24
-		# Kinda hacky, makes the public file server work
-		not path /public/*
-	}
+  @external {
+    not remote_ip 192.168.1.0/24
+    # Kinda hacky, makes the public file server work
+    not path /public/*
+  }
 }
 
 # Users
 # THESE ENV VARIABLES NEED TO BE SET TO THE PASSWORD HASHES!
 (u_family) {
-	family {$PW_FAMILY}
+  family {$PW_FAMILY}
 }
 (u_greg) {
-	greg {$PW_GREG}
+  greg {$PW_GREG}
 }
 (u_admin) {
-	admin {$PW_ADMIN}
+  admin {$PW_ADMIN}
 }
 
 (auth_family) {
-	import external
-	basicauth @external {
-		import u_family
-		import u_greg
-	}
+  import external
+  basicauth @external {
+    import u_family
+    import u_greg
+  }
 }
 (auth_greg) {
-	import external
-	basicauth @external {
-		import u_greg
-	}
+  import external
+  basicauth @external {
+    import u_greg
+  }
 }
 
 (auth_admin) {
-	basicauth {
-		import u_admin
-	}
+  basicauth {
+    import u_admin
+  }
 }
 
+## New SSO authentication
+
+# See https://blog.sjain.dev/caddy-sso/
+
+(sso) {
+  jwt {
+    set auth url https://sso.gserver.club
+    allow roles authp/admin
+  }
+}
+
+{
+  order jwt before reverse_proxy
+  order authp before jwt
+}
 
 ## Authentication ##
 
@@ -92,14 +107,48 @@
     not header_regexp mycookie Cookie gstoken={$COOKIE_TOKEN}
     # https://github.com/caddyserver/caddy/issues/3916
 
-		# Allow access to public files
-		not path /public/* /public
+    # Allow access to public files
+    not path /public/* /public
   }
   
   # store current time, page and redirect to auth
   route @no-auth {
     header Set-Cookie "myreferer={scheme}://{host}{uri}; Domain=gserver.club; Path=/; Max-Age=30; HttpOnly; SameSite=Strict; Secure"
     redir https://auth.gserver.club
+  }
+}
+
+sso.gserver.club {
+  # A bit hacky: disable the SSO portal by force-redirecting to Homer
+  handle /portal {
+    redir https://gserver.club
+  }
+  handle /auth/portal {
+    redir https://gserver.club
+  }
+
+  authp {
+    backend local /data/users.json local
+    cookie domain gserver.club
+    # 365 days in seconds
+    cookie lifetime 31536000
+    crypto default token lifetime 31536000
+    # token lifetime 2592000
+    # ui {
+    #   links {
+    #     "RSS" https://rss.mydomain.com
+    #     "Notes" https://notes.mydomain.com
+    #   }
+    # }
+    ## Disabling registration
+    # registration {
+    #   dropbox /data/users.json
+    #   code "dankmemes"
+    # }
+    transform user {
+      match email gregoryjjb@gmail.com
+      action add role authp/admin
+    }
   }
 }
 
@@ -127,45 +176,49 @@ auth.gserver.club {
 ## Servers ##
 
 gserver.club {
-	import security
-	import proxy-auth
+  import security
+  # Auth! Can't use sso directive because of primary
+  jwt {
+    primary yes # XXX: this is the addition
+    set auth url https://sso.gserver.club
+    allow roles authp/admin
+  }
 
-	reverse_proxy 127.0.0.1:7000
+  reverse_proxy 127.0.0.1:7000
 }
 
 docs.gserver.club {
-	import security
-	import proxy-auth
+  import security
+  import sso
 
-	reverse_proxy 127.0.0.1:8100
+  reverse_proxy 127.0.0.1:8100
 }
 
 jellyfin.gserver.club {
-	import security
-	
-	#handle /web/* {
-	#	rewrite /web/index.html
-	#	reverse_proxy http://127.0.0.1:8096
-	#}
-	
-	#rewrite /web/* /web/index.html
-	
-	handle {
-		reverse_proxy 127.0.0.1:8096
-	}
+  import robots # Putting this back since not using `security`
+  # import security
+  
+  #handle /web/* {
+  #	rewrite /web/index.html
+  #	reverse_proxy http://127.0.0.1:8096
+  #}
+  
+  #rewrite /web/* /web/index.html
+  
+  reverse_proxy 127.0.0.1:8096
 }
 
 # Redirect for old jellyfin
 http://jelly.fin {
-	redir https://jellyfin.gserver.club{uri}
+  redir https://jellyfin.gserver.club{uri}
 }
 
 files.gserver.club {
-	import security
-	import proxy-auth
+  import security
+  import sso
 
-	root * /shared-files
-	file_server browse
+  root * /shared-files
+  file_server browse
 }
 
 
@@ -183,71 +236,71 @@ files.gserver.club {
 
 
 netdata.gserver.club {
-	import security
-	import proxy-auth
+  import security
+  import sso
 
-	reverse_proxy 127.0.0.1:19999
+  reverse_proxy 127.0.0.1:19999
 }
 
 speedtest.gserver.club {
-	import security
-	
-	reverse_proxy 127.0.0.1:8200
+  import security
+  
+  reverse_proxy 127.0.0.1:8200
 }
 
 prometheus.gserver.club {
-	import security
-	import proxy-auth
+  import security
+  import sso
 
-	reverse_proxy 127.0.0.1:9090
+  reverse_proxy 127.0.0.1:9090
 }
 
 grafana.gserver.club {
-	import security
-	import proxy-auth
+  import security
+  import sso
 
-	reverse_proxy 127.0.0.1:9100
+  reverse_proxy 127.0.0.1:9100
 }
 
 ## Torrenting ##
 
 transmission.gserver.club {
-	import security
-	import proxy-auth
+  import security
+  import sso
 
-	reverse_proxy 127.0.0.1:9091
+  reverse_proxy 127.0.0.1:9091
 }
 
 jackett.gserver.club {
-	import security
-	import proxy-auth
+  import security
+  import sso
 
-	reverse_proxy 127.0.0.1:9117
+  reverse_proxy 127.0.0.1:9117
 }
 
 sonarr.gserver.club {
-	import security
-	import proxy-auth
+  import security
+  import sso
 
-	reverse_proxy 127.0.0.1:8989
+  reverse_proxy 127.0.0.1:8989
 }
 
 radarr.gserver.club {
-	import security
-	import proxy-auth
+  import security
+  import sso
 
-	reverse_proxy 127.0.0.1:7878
+  reverse_proxy 127.0.0.1:7878
 }
 
 bazarr.gserver.club {
-	import security
-	import proxy-auth
+  import security
+  import sso
 
-	reverse_proxy 127.0.0.1:6767
+  reverse_proxy 127.0.0.1:6767
 }
 
 ombi.gserver.club {
-	import security
+  import security
 
-	reverse_proxy 127.0.0.1:3579
+  reverse_proxy 127.0.0.1:3579
 }
