@@ -60,3 +60,8 @@ scrape_configs:
     scrape_interval: 15s
     static_configs:
       - targets: ['localhost:2019']
+  
+  - job_name: 'pihole'
+    scrape_interval: 60s
+    static_configs:
+      - targets: ['localhost:9617']

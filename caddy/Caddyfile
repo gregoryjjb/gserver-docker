@@ -1,3 +1,11 @@
+## Global options
+
+{
+  order jwt before reverse_proxy
+  order authp before jwt
+}
+
+
 ## Snippets ##
 
 (sad) {
@@ -31,6 +39,12 @@
 
     # Prevent browsers from incorrectly detecting non-scripts as scripts
     X-Content-Type-Options: "nosniff"
+  }
+}
+
+(logging) {
+  log {
+    output file /logs/access.log
   }
 }
 
@@ -85,11 +99,6 @@
   }
 }
 
-{
-  order jwt before reverse_proxy
-  order authp before jwt
-}
-
 ## Authentication ##
 
 # This was copied from https://josheli.com/knob/2021/02/24/single-sign-on-in-caddy-server-using-only-the-caddyfile-and-basic-authentication/
@@ -119,6 +128,8 @@
 }
 
 sso.gserver.club {
+  import logging
+
   # A bit hacky: disable the SSO portal by force-redirecting to Homer
   handle /portal {
     redir https://gserver.club
@@ -154,6 +165,8 @@ sso.gserver.club {
 
 # a pseudo site that only requires basic auth, sets cookie, and redirects back to original site
 auth.gserver.club {
+  import logging
+
   route / {
     # require authentication
     import basic-auth
@@ -176,6 +189,7 @@ auth.gserver.club {
 ## Servers ##
 
 gserver.club {
+  import logging
   import security
   # Auth! Can't use sso directive because of primary
   jwt {
@@ -188,6 +202,7 @@ gserver.club {
 }
 
 docs.gserver.club {
+  import logging
   import security
   import sso
 
@@ -195,6 +210,7 @@ docs.gserver.club {
 }
 
 jellyfin.gserver.club {
+  import logging
   import robots # Putting this back since not using `security`
   # import security
   
@@ -214,11 +230,20 @@ http://jelly.fin {
 }
 
 files.gserver.club {
+  import logging
   import security
   import sso
 
   root * /shared-files
   file_server browse
+}
+
+public.gserver.club {
+  import logging
+  import security
+
+  root * /shared-files/public
+  file_server
 }
 
 
@@ -236,6 +261,7 @@ files.gserver.club {
 
 
 netdata.gserver.club {
+  import logging
   import security
   import sso
 
@@ -243,12 +269,14 @@ netdata.gserver.club {
 }
 
 speedtest.gserver.club {
+  import logging
   import security
   
   reverse_proxy 127.0.0.1:8200
 }
 
 prometheus.gserver.club {
+  import logging
   import security
   import sso
 
@@ -256,15 +284,26 @@ prometheus.gserver.club {
 }
 
 grafana.gserver.club {
+  import logging
   import security
   import sso
 
   reverse_proxy 127.0.0.1:9100
 }
 
+goaccess.gserver.club {
+  import logging
+  import security
+  import sso
+
+  root * /data/goaccess
+  file_server
+}
+
 ## Torrenting ##
 
 transmission.gserver.club {
+  import logging
   import security
   import sso
 
@@ -272,6 +311,7 @@ transmission.gserver.club {
 }
 
 jackett.gserver.club {
+  import logging
   import security
   import sso
 
@@ -279,6 +319,7 @@ jackett.gserver.club {
 }
 
 sonarr.gserver.club {
+  import logging
   import security
   import sso
 
@@ -286,6 +327,7 @@ sonarr.gserver.club {
 }
 
 radarr.gserver.club {
+  import logging
   import security
   import sso
 
@@ -293,6 +335,7 @@ radarr.gserver.club {
 }
 
 bazarr.gserver.club {
+  import logging
   import security
   import sso
 
@@ -300,6 +343,7 @@ bazarr.gserver.club {
 }
 
 ombi.gserver.club {
+  import logging
   import security
 
   reverse_proxy 127.0.0.1:3579

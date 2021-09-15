@@ -91,6 +91,18 @@ services:
   #   environment:
   #     TRANSMISSION_ADDR: http://127.0.0.1:9091
 
+  pihole-exporter:
+    image: ekofr/pihole-exporter
+    container_name: pihole-exporter
+    # Needs to get to pihole
+    network_mode: host
+    restart: unless-stopped
+    environment:
+      - PORT=9617
+      - PIHOLE_HOSTNAME=${PIHOLE_HOSTNAME}
+      - PIHOLE_PASSWORD=${PIHOLE_PASSWORD}
+      - INTERVAL=60s
+
 volumes:
   netdatalib:
   netdatacache:
