@@ -246,6 +246,14 @@ public.gserver.club {
   file_server
 }
 
+paperless.gserver.club {
+  import logging
+  import security
+  # import sso # DANGEROUS exposing this!
+
+  reverse_proxy 127.0.0.1:8300
+}
+
 
 ## Monitoring ##
 
