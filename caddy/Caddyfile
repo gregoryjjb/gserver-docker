@@ -1,8 +1,8 @@
 ## Global options
 
 {
-  order jwt before reverse_proxy
-  order authp before jwt
+  ## Uncomment for debug logging
+  # debug
 }
 
 
@@ -48,141 +48,32 @@
   }
 }
 
-(external) {
-  @external {
-    not remote_ip 192.168.1.0/24
-    # Kinda hacky, makes the public file server work
-    not path /public/*
-  }
-}
-
-# Users
-# THESE ENV VARIABLES NEED TO BE SET TO THE PASSWORD HASHES!
-(u_family) {
-  family {$PW_FAMILY}
-}
-(u_greg) {
-  greg {$PW_GREG}
-}
-(u_admin) {
-  admin {$PW_ADMIN}
-}
-
-(auth_family) {
-  import external
-  basicauth @external {
-    import u_family
-    import u_greg
-  }
-}
-(auth_greg) {
-  import external
-  basicauth @external {
-    import u_greg
-  }
-}
-
-(auth_admin) {
-  basicauth {
-    import u_admin
-  }
-}
-
-## New SSO authentication
-
-# See https://blog.sjain.dev/caddy-sso/
-
-(sso) {
-  jwt {
-    set auth url https://sso.gserver.club
-    allow roles authp/admin
-  }
-}
-
 ## Authentication ##
 
-# This was copied from https://josheli.com/knob/2021/02/24/single-sign-on-in-caddy-server-using-only-the-caddyfile-and-basic-authentication/
+# Old SSO https://blog.sjain.dev/caddy-sso/
+# Old basic auth: https://josheli.com/knob/2021/02/24/single-sign-on-in-caddy-server-using-only-the-caddyfile-and-basic-authentication/
 
-(basic-auth) {
-  basicauth / {
-    admin {$PW_ADMIN}
+(internal-only) {
+  @external {
+    not remote_ip 100.64.0.0/10 192.0.0.0/8
   }
-}
- 
-# a snippet to check if a cookie token is set. if not, store the current page as the referer and redirect to auth site
-(proxy-auth) {
-  # if cookie not = some-token-nonsense
-  @no-auth {
-    not header_regexp mycookie Cookie gstoken={$COOKIE_TOKEN}
-    # https://github.com/caddyserver/caddy/issues/3916
 
-    # Allow access to public files
-    not path /public/* /public
-  }
-  
-  # store current time, page and redirect to auth
-  route @no-auth {
-    header Set-Cookie "myreferer={scheme}://{host}{uri}; Domain=gserver.club; Path=/; Max-Age=30; HttpOnly; SameSite=Strict; Secure"
-    redir https://auth.gserver.club
+  handle @external {
+    templates
+    header Content-Type text/plain
+    respond "Access denied {{.RemoteIP}}" 403
   }
 }
 
-sso.gserver.club {
+# Test for the VPN
+secure.gserver.club {
   import logging
+  import security
+  import internal-only
 
-  # A bit hacky: disable the SSO portal by force-redirecting to Homer
-  handle /portal {
-    redir https://gserver.club
-  }
-  handle /auth/portal {
-    redir https://gserver.club
-  }
-
-  authp {
-    backend local /data/users.json local
-    cookie domain gserver.club
-    # 365 days in seconds
-    cookie lifetime 31536000
-    crypto default token lifetime 31536000
-    # token lifetime 2592000
-    # ui {
-    #   links {
-    #     "RSS" https://rss.mydomain.com
-    #     "Notes" https://notes.mydomain.com
-    #   }
-    # }
-    ## Disabling registration
-    # registration {
-    #   dropbox /data/users.json
-    #   code "dankmemes"
-    # }
-    transform user {
-      match email gregoryjjb@gmail.com
-      action add role authp/admin
-    }
-  }
-}
-
-# a pseudo site that only requires basic auth, sets cookie, and redirects back to original site
-auth.gserver.club {
-  import logging
-
-  route / {
-    # require authentication
-    import basic-auth
-
-    # upon successful auth, set a client token
-    header Set-Cookie "gstoken={$COOKIE_TOKEN}; Domain=gserver.club; Path=/; Max-Age=2592000; HttpOnly; SameSite=Strict; Secure"
-
-    #delete the referer cookie
-    header +Set-Cookie "myreferer=null; Domain=gserver.club; Path=/; Expires=Thu, 25 Sep 1971 12:00:00 GMT; HttpOnly; SameSite=Strict; Secure"
-
-    # redirect back to the original site
-    redir {http.request.cookie.myreferer}
-  }
-
-  # fallback
-  respond "Hi."
+  templates
+  header Content-Type text/plain
+  respond "Access granted {{.RemoteIP}}"
 }
 
 
@@ -191,12 +82,7 @@ auth.gserver.club {
 gserver.club {
   import logging
   import security
-  # Auth! Can't use sso directive because of primary
-  jwt {
-    primary yes # XXX: this is the addition
-    set auth url https://sso.gserver.club
-    allow roles authp/admin
-  }
+  import internal-only
 
   reverse_proxy 127.0.0.1:7000
 }
@@ -204,7 +90,7 @@ gserver.club {
 docs.gserver.club {
   import logging
   import security
-  import sso
+  import internal-only
 
   reverse_proxy 127.0.0.1:8100
 }
@@ -232,7 +118,7 @@ http://jelly.fin {
 files.gserver.club {
   import logging
   import security
-  import sso
+  import internal-only
 
   root * /shared-files
   file_server browse
@@ -249,7 +135,7 @@ public.gserver.club {
 paperless.gserver.club {
   import logging
   import security
-  # import sso # DANGEROUS exposing this!
+  # import internal-only # DANGEROUS exposing this!
 
   reverse_proxy 127.0.0.1:8300
 }
@@ -271,7 +157,7 @@ paperless.gserver.club {
 netdata.gserver.club {
   import logging
   import security
-  import sso
+  import internal-only
 
   reverse_proxy 127.0.0.1:19999
 }
@@ -286,7 +172,7 @@ speedtest.gserver.club {
 prometheus.gserver.club {
   import logging
   import security
-  import sso
+  import internal-only
 
   reverse_proxy 127.0.0.1:9090
 }
@@ -294,7 +180,7 @@ prometheus.gserver.club {
 grafana.gserver.club {
   import logging
   import security
-  import sso
+  import internal-only
 
   reverse_proxy 127.0.0.1:9100
 }
@@ -302,7 +188,7 @@ grafana.gserver.club {
 goaccess.gserver.club {
   import logging
   import security
-  import sso
+  import internal-only
 
   root * /data/goaccess
   file_server
@@ -313,7 +199,7 @@ goaccess.gserver.club {
 transmission.gserver.club {
   import logging
   import security
-  import sso
+  import internal-only
 
   reverse_proxy 127.0.0.1:9091
 }
@@ -321,7 +207,7 @@ transmission.gserver.club {
 jackett.gserver.club {
   import logging
   import security
-  import sso
+  import internal-only
 
   reverse_proxy 127.0.0.1:9117
 }
@@ -329,7 +215,7 @@ jackett.gserver.club {
 sonarr.gserver.club {
   import logging
   import security
-  import sso
+  import internal-only
 
   reverse_proxy 127.0.0.1:8989
 }
@@ -337,7 +223,7 @@ sonarr.gserver.club {
 radarr.gserver.club {
   import logging
   import security
-  import sso
+  import internal-only
 
   reverse_proxy 127.0.0.1:7878
 }
@@ -345,7 +231,7 @@ radarr.gserver.club {
 bazarr.gserver.club {
   import logging
   import security
-  import sso
+  import internal-only
 
   reverse_proxy 127.0.0.1:6767
 }
