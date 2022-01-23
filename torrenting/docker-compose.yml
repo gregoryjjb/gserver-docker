@@ -58,7 +58,7 @@ services:
       - ./volumes/jackett-downloads:/downloads
 
   sonarr:
-    image: ghcr.io/linuxserver/sonarr:preview
+    image: ghcr.io/linuxserver/sonarr:3.0.6
     container_name: sonarr
     restart: unless-stopped
     ports:
@@ -72,7 +72,7 @@ services:
       - /media/external/shared/media/automatic:/media
   
   radarr:
-    image: ghcr.io/linuxserver/radarr
+    image: ghcr.io/linuxserver/radarr:version-3.2.2.5080
     container_name: radarr
     restart: unless-stopped
     ports:
@@ -97,6 +97,7 @@ services:
       - TZ=US/Pacific
     volumes:
       - ./volumes/bazarr-config:/config
+      - ./scripts:/scripts
       - /media/external/shared/media/automatic:/media
 
   ombi:
