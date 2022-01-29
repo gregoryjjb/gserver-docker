@@ -79,6 +79,28 @@ services:
       - ./grafana.ini:/etc/grafana/grafana.ini
       - ./volumes/grafana/data:/var/lib/grafana
   
+  loki:
+    image: grafana/loki:2.4.0
+    container_name: loki
+    # We need same network as Grafana
+    network_mode: host
+    user: 1000:1000
+    volumes:
+      - ./loki.yml:/config/loki.yml
+    command: -config.file=/config/loki.yml
+
+  # Docker plugin is required on host
+  promtail:
+    image: grafana/promtail:2.4.0
+    container_name: promtail
+    # We need same network as Loki
+    network_mode: host
+    # user: 1000:1000
+    volumes:
+      - /var/log:/var/log:ro
+      - ./promtail.yml:/config/promtail.yml
+    command: -config.file=/config/promtail.yml
+
   # transmission-exporter:
   #   image: metalmatze/transmission-exporter
   #   restart: unless-stopped
