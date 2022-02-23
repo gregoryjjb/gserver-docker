@@ -10,4 +10,4 @@ services:
       - "5572:5572"
       - "53682:53682"
     volumes:
-      - /media/external/shared/backups/rclone:/data
+      - /mnt/storage/backups/rclone:/data

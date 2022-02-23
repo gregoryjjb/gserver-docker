@@ -8,7 +8,7 @@ services:
       - NET_ADMIN
     volumes:
       - './volumes/us_all.ovpn:/etc/openvpn/mullvad/us_all.ovpn'
-      - '/media/external/shared/media/automatic/torrents:/data'
+      - '/mnt/storage/media/automatic/torrents:/data'
     environment:
       - PUID=1000
       - PGID=1000
@@ -69,7 +69,7 @@ services:
       - TZ=US/Pacific
     volumes:
       - ./volumes/sonarr-config:/config
-      - /media/external/shared/media/automatic:/media
+      - /mnt/storage/media/automatic:/media
   
   radarr:
     image: ghcr.io/linuxserver/radarr:version-3.2.2.5080
@@ -83,7 +83,7 @@ services:
       - TZ=US/Pacific
     volumes:
       - ./volumes/radarr-config:/config
-      - /media/external/shared/media/automatic:/media
+      - /mnt/storage/media/automatic:/media
   
   bazarr:
     image: ghcr.io/linuxserver/bazarr
@@ -98,7 +98,7 @@ services:
     volumes:
       - ./volumes/bazarr-config:/config
       - ./scripts:/scripts
-      - /media/external/shared/media/automatic:/media
+      - /mnt/storage/media/automatic:/media
 
   ombi:
     image: ghcr.io/linuxserver/ombi

@@ -23,7 +23,7 @@ services:
       - ./volumes/data:/data
       - ./volumes/config:/config
       - ./volumes/logs:/logs
-      - /media/external/shared/web:/shared-files:ro
+      - /mnt/storage/web:/shared-files:ro
 
   goaccess:
     image: allinurl/goaccess

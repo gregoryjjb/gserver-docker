@@ -19,8 +19,8 @@ services:
     #   - 1900:1900/udp #optional
     volumes:
       - ./volumes/config:/config
-      - /media/external/shared/media/.cache/jellyfin:/cache
-      - /media/external/shared/media:/media
+      - /mnt/storage/media/.cache/jellyfin:/cache
+      - /mnt/storage/media:/media
     restart: unless-stopped
     runtime: nvidia
     environment:
