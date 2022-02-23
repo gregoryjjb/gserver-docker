@@ -1,7 +1,9 @@
 theme:
   name: material
+  palette:
+    primary: deep purple
 
-site_name: GServer Docs
+site_name: Gellyfin Help
 
 markdown_extensions:
   - attr_list

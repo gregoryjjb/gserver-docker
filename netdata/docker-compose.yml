@@ -74,7 +74,7 @@ services:
     user: 1000:1000
     restart: unless-stopped
     environment:
-      - PORT=9100
+      - PORT=9200
     volumes:
       - ./grafana.ini:/etc/grafana/grafana.ini
       - ./volumes/grafana/data:/var/lib/grafana
