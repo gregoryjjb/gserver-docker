@@ -3,6 +3,7 @@
 {
   ## Uncomment for debug logging
   # debug
+  email gregoryjjb@gmail.com
 }
 
 
@@ -76,180 +77,131 @@ secure.gserver.club {
   respond "Access granted {{.RemoteIP}}"
 }
 
+gellyfin.com, *.gellyfin.com {
+  tls {
+    dns cloudflare {env.CLOUDFLARE_API_TOKEN}
+    resolvers 1.1.1.1
+  }
 
-## Servers ##
-
-gserver.club {
   import logging
   import security
-  import internal-only
 
-  reverse_proxy 127.0.0.1:7000
-}
-
-docs.gserver.club {
-  redir https://help.gellyfin.com{uri}
-}
-
-jellyfin.gserver.club {
-  import logging
-  import robots # Putting this back since not using `security`
-  # import security
+  @gellyfin host gellyfin.com
+  @ombi host ombi.gellyfin.com
+  @help host help.gellyfin.com
+  @speedtest host speedtest.gellyfin.com
   
-  #handle /web/* {
-  #	rewrite /web/index.html
-  #	reverse_proxy http://127.0.0.1:8096
-  #}
-  
-  #rewrite /web/* /web/index.html
-  
-  reverse_proxy 127.0.0.1:8096
+  @temp host temp.gellyfin.com
+
+
+  # Jellyfin
+  handle @gellyfin {
+    reverse_proxy 127.0.0.1:8096
+  }
+
+  handle @ombi {
+    reverse_proxy 127.0.0.1:3579
+  }
+
+  # Docs
+  handle @help {
+    reverse_proxy 127.0.0.1:8100
+  }
+
+  handle @speedtest {
+    reverse_proxy 127.0.0.1:8200
+  }
+
+  # Temp
+  handle @temp {
+    respond "This is a temporary route"
+  }
 }
 
-gellyfin.com {
-  import logging
-  import robots
+gserver.club, *.gserver.club {
+  tls {
+    dns cloudflare {env.CLOUDFLARE_API_TOKEN}
+    resolvers 1.1.1.1
+  }
 
-  reverse_proxy 127.0.0.1:8096
-}
-
-help.gellyfin.com {
-  import logging
-  import security
-  import internal-only
-
-  reverse_proxy 127.0.0.1:8100
-}
-
-# Redirect for old jellyfin
-http://jelly.fin {
-  redir https://jellyfin.gserver.club{uri}
-}
-
-files.gserver.club {
-  import logging
-  import security
-  import internal-only
-
-  root * /shared-files
-  file_server browse
-}
-
-public.gserver.club {
-  import logging
-  import security
-
-  root * /shared-files/public
-  file_server
-}
-
-paperless.gserver.club {
-  import logging
-  import security
-  # import internal-only # DANGEROUS exposing this!
-
-  reverse_proxy 127.0.0.1:8300
-}
-
-
-## Monitoring ##
-
-# cockpit.gserver.club {
-# 	import security
-# 	import external
-# 	# Can't use basic auth here because Cockpit uses it :(
-# 	# So just block instead
-# 	respond @external "Access denied" 403
-
-# 	reverse_proxy 127.0.0.1:9090
-# }
-
-
-netdata.gserver.club {
   import logging
   import security
   import internal-only
 
-  reverse_proxy 127.0.0.1:19999
-}
+  @root host gserver.club
+  @files host files.gserver.club
+  @public host public.gserver.club
+  @paperless host paperless.gserver.club
 
-speedtest.gserver.club {
-  import logging
-  import security
-  
-  reverse_proxy 127.0.0.1:8200
-}
+  handle @root {
+    reverse_proxy 127.0.0.1:7000
+  }
 
-prometheus.gserver.club {
-  import logging
-  import security
-  import internal-only
+  handle @files {
+    root * /shared-files
+    file_server browse
+  }
 
-  reverse_proxy 127.0.0.1:9090
-}
+  handle @public {
+    root * /shared-files/public
+    file_server
+  }
 
-grafana.gserver.club {
-  import logging
-  import security
-  import internal-only
+  handle @paperless {
+    reverse_proxy 127.0.0.1:8300
+  }
 
-  reverse_proxy 127.0.0.1:9200
-}
 
-goaccess.gserver.club {
-  import logging
-  import security
-  import internal-only
+  # Monitoring
 
-  root * /data/goaccess
-  file_server
-}
+  @netdata host netdata.gserver.club
+  @prometheus host prometheus.gserver.club
+  @grafana host grafana.gserver.club
+  @goaccess host goaccess.gserver.club
 
-## Torrenting ##
+  handle @netdata {
+    reverse_proxy 127.0.0.1:19999
+  }
 
-transmission.gserver.club {
-  import logging
-  import security
-  import internal-only
+  handle @prometheus {
+    reverse_proxy 127.0.0.1:9090
+  }
 
-  reverse_proxy 127.0.0.1:9091
-}
+  handle @grafana {
+    reverse_proxy 127.0.0.1:9200
+  }
 
-jackett.gserver.club {
-  import logging
-  import security
-  import internal-only
+  handle @goaccess {
+    root * /data/goaccess
+    file_server
+  }
 
-  reverse_proxy 127.0.0.1:9117
-}
 
-sonarr.gserver.club {
-  import logging
-  import security
-  import internal-only
+  # Torrenting
 
-  reverse_proxy 127.0.0.1:8989
-}
+  @transmission host transmission.gserver.club
+  @jackett host jackett.gserver.club
+  @sonarr host sonarr.gserver.club
+  @radarr host radarr.gserver.club
+  @bazarr host bazarr.gserver.club
 
-radarr.gserver.club {
-  import logging
-  import security
-  import internal-only
+  handle @transmission {
+    reverse_proxy 127.0.0.1:9091
+  }
 
-  reverse_proxy 127.0.0.1:7878
-}
+  handle @jackett {
+    reverse_proxy 127.0.0.1:9117
+  }
 
-bazarr.gserver.club {
-  import logging
-  import security
-  import internal-only
+  handle @sonarr {
+    reverse_proxy 127.0.0.1:8989
+  }
 
-  reverse_proxy 127.0.0.1:6767
-}
+  handle @radarr {
+    reverse_proxy 127.0.0.1:7878
+  }
 
-ombi.gserver.club {
-  import logging
-  import security
-
-  reverse_proxy 127.0.0.1:3579
+  handle @bazarr {
+    reverse_proxy 127.0.0.1:6767
+  }
 }

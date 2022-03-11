@@ -21,6 +21,17 @@ scrape_configs:
     static_configs:
       - targets: ['localhost:9100']
   
+  - job_name: cadvisor
+    scrape_interval: 5s
+    static_configs:
+    - targets: [localhost:8090]
+    # CAdvisor doesn't prefix :/
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: '(.*)'
+        replacement: 'cadvisor_${1}'
+        target_label: __name__
+  
   - job_name: 'netdata'
     metrics_path: '/api/v1/allmetrics'
     params:
