@@ -1,52 +1,50 @@
-## Global options
-
+## Global options ##
 {
-  ## Uncomment for debug logging
-  # debug
-  email gregoryjjb@gmail.com
+	## Uncomment for debug logging
+	# debug
+	email gregoryjjb@gmail.com
 }
-
 
 ## Snippets ##
 
 (sad) {
-  respond "Down for maintenance, please check back later :("
+	respond "Down for maintenance, please check back later :("
 }
 
 (robots) {
-  header X-Robots-Tag "noindex"
+	header X-Robots-Tag "noindex"
 }
 
 (security) {
-  header {
-    # No Google
-    X-Robots-Tag "noindex"
+	header {
+		# No Google
+		X-Robots-Tag "noindex"
 
-    Access-Control-Allow-Origin {host}
+		Access-Control-Allow-Origin {host}
 
-    # Tweaked to work with all the sites (no iframe)
-    # Not the safest
-    # !!! DISABLED: this was causing a NS_BINDING_ABORTED in Jellyfin on some requests, no idea why
-    # Content-Security-Policy "default-src https: 'unsafe-inline' 'unsafe-eval' data: connect-src 'self' ws: frame-ancestors 'none'"
+		# Tweaked to work with all the sites (no iframe)
+		# Not the safest
+		# !!! DISABLED: this was causing a NS_BINDING_ABORTED in Jellyfin on some requests, no idea why
+		# Content-Security-Policy "default-src https: 'unsafe-inline' 'unsafe-eval' data: connect-src 'self' ws: frame-ancestors 'none'"
 
-    # No iframes
-    X-Frame-Options: "DENY"
+		# No iframes
+		X-Frame-Options: "DENY"
 
-    # Only connect to this site via HTTPS for the two years (recommended by MDN)
-    Strict-Transport-Security: max-age=63072000
+		# Only connect to this site via HTTPS for the two years (recommended by MDN)
+		Strict-Transport-Security: max-age=63072000
 
-    # Block pages from loading when they detect reflected XSS attacks
-    X-XSS-Protection: "1; mode=block"
+		# Block pages from loading when they detect reflected XSS attacks
+		X-XSS-Protection: "1; mode=block"
 
-    # Prevent browsers from incorrectly detecting non-scripts as scripts
-    X-Content-Type-Options: "nosniff"
-  }
+		# Prevent browsers from incorrectly detecting non-scripts as scripts
+		X-Content-Type-Options: "nosniff"
+	}
 }
 
 (logging) {
-  log {
-    output file /logs/access.log
-  }
+	log {
+		output file /logs/access.log
+	}
 }
 
 ## Authentication ##
@@ -55,153 +53,143 @@
 # Old basic auth: https://josheli.com/knob/2021/02/24/single-sign-on-in-caddy-server-using-only-the-caddyfile-and-basic-authentication/
 
 (internal-only) {
-  @external {
-    not remote_ip 100.64.0.0/10 192.0.0.0/8
-  }
+	@external {
+		not remote_ip 100.64.0.0/10 192.0.0.0/8
+	}
 
-  handle @external {
-    templates
-    header Content-Type text/plain
-    respond "Access denied {{.RemoteIP}}" 403
-  }
+	handle @external {
+		templates
+		header Content-Type text/plain
+		respond "Access denied {{.RemoteIP}}" 403
+	}
 }
 
-# Test for the VPN
-secure.gserver.club {
-  import logging
-  import security
-  import internal-only
-
-  templates
-  header Content-Type text/plain
-  respond "Access granted {{.RemoteIP}}"
-}
+## External sites ##
 
 gellyfin.com, *.gellyfin.com {
-  tls {
-    dns cloudflare {env.CLOUDFLARE_API_TOKEN}
-    resolvers 1.1.1.1
-  }
+	tls {
+		dns cloudflare {env.CLOUDFLARE_API_TOKEN}
+		resolvers 1.1.1.1
+	}
 
-  import logging
-  import security
+	import logging
+	import security
 
-  @gellyfin host gellyfin.com
-  @ombi host ombi.gellyfin.com
-  @help host help.gellyfin.com
-  @speedtest host speedtest.gellyfin.com
-  
-  @temp host temp.gellyfin.com
+	@gellyfin host gellyfin.com
+	@ombi host ombi.gellyfin.com
+	@help host help.gellyfin.com
+	@speedtest host speedtest.gellyfin.com
 
+	@temp host temp.gellyfin.com
 
-  # Jellyfin
-  handle @gellyfin {
-    reverse_proxy 127.0.0.1:8096
-  }
+	# Jellyfin
+	handle @gellyfin {
+		reverse_proxy 127.0.0.1:8096
+	}
 
-  handle @ombi {
-    reverse_proxy 127.0.0.1:3579
-  }
+	handle @ombi {
+		reverse_proxy 127.0.0.1:3579
+	}
 
-  # Docs
-  handle @help {
-    reverse_proxy 127.0.0.1:8100
-  }
+	# Docs
+	handle @help {
+		reverse_proxy 127.0.0.1:8100
+	}
 
-  handle @speedtest {
-    reverse_proxy 127.0.0.1:8200
-  }
+	handle @speedtest {
+		reverse_proxy 127.0.0.1:8200
+	}
 
-  # Temp
-  handle @temp {
-    respond "This is a temporary route"
-  }
+	# Temp
+	handle @temp {
+		respond "This is a temporary route"
+	}
 }
 
+## Internal sites ##
+
 gserver.club, *.gserver.club {
-  tls {
-    dns cloudflare {env.CLOUDFLARE_API_TOKEN}
-    resolvers 1.1.1.1
-  }
+	tls {
+		dns cloudflare {env.CLOUDFLARE_API_TOKEN}
+		resolvers 1.1.1.1
+	}
 
-  import logging
-  import security
-  import internal-only
+	import logging
+	import security
+	import internal-only
 
-  @root host gserver.club
-  @files host files.gserver.club
-  @public host public.gserver.club
-  @paperless host paperless.gserver.club
+	@root host gserver.club
+	@files host files.gserver.club
+	@public host public.gserver.club
+	@paperless host paperless.gserver.club
 
-  handle @root {
-    reverse_proxy 127.0.0.1:7000
-  }
+	handle @root {
+		reverse_proxy 127.0.0.1:7000
+	}
 
-  handle @files {
-    root * /shared-files
-    file_server browse
-  }
+	handle @files {
+		root * /shared-files
+		file_server browse
+	}
 
-  handle @public {
-    root * /shared-files/public
-    file_server
-  }
+	handle @public {
+		root * /shared-files/public
+		file_server
+	}
 
-  handle @paperless {
-    reverse_proxy 127.0.0.1:8300
-  }
+	handle @paperless {
+		reverse_proxy 127.0.0.1:8300
+	}
 
+	# Monitoring
 
-  # Monitoring
+	@netdata host netdata.gserver.club
+	@prometheus host prometheus.gserver.club
+	@grafana host grafana.gserver.club
+	@goaccess host goaccess.gserver.club
 
-  @netdata host netdata.gserver.club
-  @prometheus host prometheus.gserver.club
-  @grafana host grafana.gserver.club
-  @goaccess host goaccess.gserver.club
+	handle @netdata {
+		reverse_proxy 127.0.0.1:19999
+	}
 
-  handle @netdata {
-    reverse_proxy 127.0.0.1:19999
-  }
+	handle @prometheus {
+		reverse_proxy 127.0.0.1:9090
+	}
 
-  handle @prometheus {
-    reverse_proxy 127.0.0.1:9090
-  }
+	handle @grafana {
+		reverse_proxy 127.0.0.1:9200
+	}
 
-  handle @grafana {
-    reverse_proxy 127.0.0.1:9200
-  }
+	handle @goaccess {
+		root * /data/goaccess
+		file_server
+	}
 
-  handle @goaccess {
-    root * /data/goaccess
-    file_server
-  }
+	# Torrenting
 
+	@transmission host transmission.gserver.club
+	@jackett host jackett.gserver.club
+	@sonarr host sonarr.gserver.club
+	@radarr host radarr.gserver.club
+	@bazarr host bazarr.gserver.club
 
-  # Torrenting
+	handle @transmission {
+		reverse_proxy 127.0.0.1:9091
+	}
 
-  @transmission host transmission.gserver.club
-  @jackett host jackett.gserver.club
-  @sonarr host sonarr.gserver.club
-  @radarr host radarr.gserver.club
-  @bazarr host bazarr.gserver.club
+	handle @jackett {
+		reverse_proxy 127.0.0.1:9117
+	}
 
-  handle @transmission {
-    reverse_proxy 127.0.0.1:9091
-  }
+	handle @sonarr {
+		reverse_proxy 127.0.0.1:8989
+	}
 
-  handle @jackett {
-    reverse_proxy 127.0.0.1:9117
-  }
+	handle @radarr {
+		reverse_proxy 127.0.0.1:7878
+	}
 
-  handle @sonarr {
-    reverse_proxy 127.0.0.1:8989
-  }
-
-  handle @radarr {
-    reverse_proxy 127.0.0.1:7878
-  }
-
-  handle @bazarr {
-    reverse_proxy 127.0.0.1:6767
-  }
+	handle @bazarr {
+		reverse_proxy 127.0.0.1:6767
+	}
 }
