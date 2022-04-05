@@ -116,7 +116,29 @@ gserver.club, *.gserver.club {
 
 	import logging
 	import security
+
+	# Redirects (needs to be before internal-only)
+
+	@oldjellyfin host jellyfin.gserver.club
+	@oldombi host ombi.gserver.club
+	@oldhelp host docs.gserver.club
+
+	handle @oldjellyfin {
+		redir https://gellyfin.com permanent
+	}
+
+	handle @oldombi {
+		redir https://ombi.gellyfin.com permanent
+	}
+
+	handle @oldhelp {
+		redir https://help.gellyfin.com permanent
+	}
+
+	# IMPORTANT! Security from the outside world
 	import internal-only
+
+	# Apps
 
 	@root host gserver.club
 	@files host files.gserver.club

@@ -4,7 +4,7 @@ Like Netflix but better.
 
 [Access Jellyfin Web](https://gellyfin.com){ .md-button .md-button--primary }
 
-[Make a request](https://ombi.gserver.club){ .md-button }
+[Make a request](https://ombi.gellyfin.com){ .md-button }
 
 
 ## Android/iPhone Setup

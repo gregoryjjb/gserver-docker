@@ -86,7 +86,7 @@ services:
       - /mnt/storage/media/automatic:/media
   
   bazarr:
-    image: ghcr.io/linuxserver/bazarr
+    image: ghcr.io/linuxserver/bazarr:1.0.3
     container_name: bazarr
     restart: unless-stopped
     ports:
@@ -101,7 +101,7 @@ services:
       - /mnt/storage/media/automatic:/media
 
   ombi:
-    image: ghcr.io/linuxserver/ombi
+    image: ghcr.io/linuxserver/ombi:4.15.3-development
     container_name: ombi
     restart: unless-stopped
     environment:

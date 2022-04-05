@@ -73,19 +73,19 @@ services:
         subtitle: "Movies & TV"
         logo: "assets/tools/jellyfin.svg"
         #tag: "app"
-        url: "https://jellyfin.gserver.club"
+        url: "https://gellyfin.com"
         #target: "_blank" # optional html a tag target attribute
       
       - name: "Obmi"
         subtitle: "Request movies & TV"
         logo: "assets/tools/ombi.png"
-        url: "https://ombi.gserver.club"
+        url: "https://ombi.gellyfin.com"
 
       - name: "Help"
         subtitle: "Documentation"
         logo: "assets/tools/life-ring.svg"
         #tag: "app"
-        url: "https://docs.gserver.club"
+        url: "https://help.gellyfin.com"
 
       - name: "Files"
         subtitle: "Internet-facing storage"

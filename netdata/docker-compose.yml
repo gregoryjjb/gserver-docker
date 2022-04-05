@@ -71,7 +71,7 @@ services:
       - '--web.console.templates=/usr/share/prometheus/consoles'
       # Custom config
       - '--web.enable-lifecycle'
-      - '--storage.tsdb.retention.time=1y'
+      - '--storage.tsdb.retention.size=20GB'
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
       - ./volumes/prometheus:/prometheus
