@@ -79,6 +79,8 @@ gellyfin.com, *.gellyfin.com {
 	@ombi host ombi.gellyfin.com
 	@help host help.gellyfin.com
 	@speedtest host speedtest.gellyfin.com
+	@publicfiles host files.gellyfin.com
+	@clips host clips.gellyfin.com
 
 	@temp host temp.gellyfin.com
 
@@ -100,9 +102,13 @@ gellyfin.com, *.gellyfin.com {
 		reverse_proxy 127.0.0.1:8200
 	}
 
-	# Temp
-	handle @temp {
-		respond "This is a temporary route"
+	handle @publicfiles {
+		root * /shared-files/public
+		file_server
+	}
+
+	handle @clips {
+		reverse_proxy 127.0.0.1:8081
 	}
 }
 

@@ -1,0 +1,16 @@
+version: "2.3"
+
+services:
+  clipface:
+    # image: tomsan/clipface
+    build: ./clipface
+    container_name: clipface
+    restart: unless-stopped
+    user: 1000:1000
+    ports:
+      - 8081:80
+    volumes:
+      - /mnt/storage/web/clips:/clips:ro
+    environment:
+      - CLIPFACE_HEADER_TITLE=Greg's clips
+      - CLIPFACE_USER_PASSWORD=${CLIPFACE_USER_PASSWORD}
