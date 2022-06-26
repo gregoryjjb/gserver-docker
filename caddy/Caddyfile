@@ -76,6 +76,8 @@ gellyfin.com, *.gellyfin.com {
 	import security
 
 	@gellyfin host gellyfin.com
+	@accounts host accounts.gellyfin.com
+	@requests host requests.gellyfin.com
 	@ombi host ombi.gellyfin.com
 	@help host help.gellyfin.com
 	@speedtest host speedtest.gellyfin.com
@@ -89,8 +91,19 @@ gellyfin.com, *.gellyfin.com {
 		reverse_proxy 127.0.0.1:8096
 	}
 
+	# jfa-go
+	handle @accounts {
+		reverse_proxy 127.0.0.1:8056
+	}
+
+	# Jellyseerr (Overseerr)
+	handle @requests {
+		reverse_proxy 127.0.0.1:5055
+	}
+
+	# Old Ombi
 	handle @ombi {
-		reverse_proxy 127.0.0.1:3579
+		redir https://requests.gellyfin.com permanent
 	}
 
 	# Docs
@@ -134,7 +147,7 @@ gserver.club, *.gserver.club {
 	}
 
 	handle @oldombi {
-		redir https://ombi.gellyfin.com permanent
+		redir https://requests.gellyfin.com permanent
 	}
 
 	handle @oldhelp {
