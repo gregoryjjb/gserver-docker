@@ -28,9 +28,7 @@ sudo mv node_exporter /usr/local/bin/
 sudo useradd -rs /bin/false node_exporter
 
 # Create a node_exporter file for systemd
-sudo nano /etc/systemd/system/node_exporter.service
-
-# Fill it with the content below
+sudo cp ./services/node_exporter.service /etc/systemd/system/
 
 # Reload the daemon
 sudo systemctl daemon-reload
@@ -40,19 +38,21 @@ sudo systemctl start node_exporter
 sudo systemctl status node_exporter
 ```
 
-Service file (`node_exporter.service`):
 
-```
-[Unit]
-Description=Node Exporter
-After=network.target
+# NVIDIA GPU Exporter
 
-[Service]
-User=node_exporter
-Group=node_exporter
-Type=simple
-ExecStart=/usr/local/bin/node_exporter --collector.textfile.directory /var/lib/node_exporter/textfiles
+Install this thing: https://github.com/utkuozdemir/nvidia_gpu_exporter
 
-[Install]
-WantedBy=multi-user.target
-```
+```bash
+# Move it to the PATH
+sudo mv nvidia_gpu_exporter /usr/local/bin
+
+# Create a nvidia_gpu_exporter user to run the service
+sudo useradd -rs /bin/false nvidia_gpu_exporter
+
+# Create a nvidia_gpu_exporter file for systemd
+sudo cp ./services/nvidia_gpu_exporter.service /etc/systemd/system/
+
+# Reload the daemon
+sudo systemctl daemon-reload
+sudo systemctl enable --now nvidia_gpu_exporter
